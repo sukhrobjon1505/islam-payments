@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foydalanuvchi Joylashuvini Ko'rsatish</title>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css" rel="stylesheet" />
+    <style>
+        /* Xarita ko'rinishini sozlash */
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Popupdagi rasmni uslublash */
+        .popup-img {
+            width: 100%;
+            height: auto;
+            margin-top: 5px;
+        }
+
+        .popup-text {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .popup-title {
+            font-weight: bold;
+        }
+
+        /* Dumaloq marker ikonkasi */
+        .marker {
+            width: 30px;
+            height: 30px;
+            background-color: #FF6347; /* Qizil rang */
+            border-radius: 50%;
+            border: 2px solid #fff; /* Marker atrofida oq chegara */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .marker:hover {
+            transform: scale(1.2); /* Hover vaqtida markerni kattalashtirish */
+        }
+    </style>
+</head>
+<body>
+    <!-- Xarita uchun konteyner -->
+    <div id="map"></div>
+    
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js"></script>
+    <script>
+        // Mapbox API kalitingiz
+        mapboxgl.accessToken = 'pk.eyJ1IjoiaXNsb21vdnN1a2hyb2Jqb24iLCJhIjoiY200MmxtcnUwMDJjbDJscXh1OHppaGhvbiJ9.eooU4OFDn1n-nBr460FV9g';
+
+        // Xarita yaratish
+        var map = new mapboxgl.Map({
+            container: 'map', // Xarita uchun HTML konteyneri
+            style: 'mapbox://styles/mapbox/streets-v11', // Xarita dizayni
+            center: [64.5853, 41.3775], // O'zbekiston markazi (Koordinatalar)
+            zoom: 6 // Zoom darajasi
+        });
+
+        // Foydalanuvchining joylashuvini aniqlash
+        var userLat, userLng;
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                userLng = position.coords.longitude;
+                userLat = position.coords.latitude;
+
+                // Foydalanuvchining joylashuvini xaritada belgilash
+                map.setCenter([userLng, userLat]); // Xarita markazini foydalanuvchining joylashuviga o'zgartirish
+                map.setZoom(14); // Zoom darajasini o'zgartirish
+
+                // Foydalanuvchining joylashuvi uchun marker qo'shish
+                new mapboxgl.Marker()
+                    .setLngLat([userLng, userLat])
+                    .setPopup(new mapboxgl.Popup().setHTML('<b>Foydalanuvchi joylashuvi</b>'))
+                    .addTo(map);
+            }, function(error) {
+                alert("Geolokatsiya aniqlashda xatolik yuz berdi: " + error.message);
+            }, {
+                enableHighAccuracy: true,  // Yaxshi aniqlikni ta'minlash
+                timeout: 5000,             // Geolokatsiyani aniqlash uchun maksimal vaqt (5 soniya)
+                maximumAge: 0             // Eng so'nggi joylashuvni olish
+            });
+        } else {
+            alert("Geolokatsiya bu brauzerda qo'llab-quvvatlanmaydi.");
+        }
+
+        // Yaqin joylar (manzillar) ro'yxati
+        var locations = [
+            {
+                lng: 64.5853,
+                lat: 41.3775,
+                title: "Toshkent",
+                image: "https://upload.wikimedia.org/wikipedia/commons/0/0e/Tashkent_skyline.jpg", // Toshkent rasmi
+                description: "Toshkent – O'zbekistonning poytaxti, madaniyat va sanoat markazi.",
+                additionalInfo: "Toshkent shahrida ko'plab tarixiy obidalar, madaniy markazlar va zamonaviy inshootlar mavjud."
+            },
+            {
+                lng: 66.9606,
+                lat: 39.6480,
+                title: "Samarkand",
+                image: "https://upload.wikimedia.org/wikipedia/commons/1/1b/Samarkand_View.jpg", // Samarkand rasmi
+                description: "Samarkand – O'rta asrlardagi ulkan ilmiy markaz va tarixiy shahar.",
+                additionalInfo: "Samarkandda ulkan me'moriy obidalar, jumladan, Registon maydoni va Shah-i-Zinda mavjud."
+            },
+            {
+                lng: 67.2732,
+                lat: 40.1000,
+                title: "Buxoro",
+                image: "https://upload.wikimedia.org/wikipedia/commons/3/32/Bukhara_Old_City.jpg", // Buxoro rasmi
+                description: "Buxoro – qadimgi shahar, o'zining boy tarixiy merosi bilan mashhur.",
+                additionalInfo: "Buxoro Shahridagi tarixiy inshootlar, jumladan, Buxoro qal'asi va Ark qal'asi katta ahamiyatga ega."
+            },
+            {
+                lng: 63.4044,
+                lat: 41.3000,
+                title: "Nukus",
+                image: "https://upload.wikimedia.org/wikipedia/commons/d/d5/Nukus.jpg", // Nukus rasmi
+                description: "Nukus – O'zbekistonning shimoliy-g'arbidagi katta shahar va Qoraqalpog'iston poytaxti.",
+                additionalInfo: "Nukusda Qoraqalpoq milliy san'ati va madaniyatiga oid muzeylar mavjud."
+            }
+        ];
+
+        // Har bir joyni xaritada marker va pop-up bilan belgilash (son tartibida)
+        locations.forEach(function(location, index) {
+            var markerElement = document.createElement('div');
+            markerElement.className = 'marker';
+            markerElement.innerHTML = (index + 1); // Marker ichida raqamni ko'rsatish
+
+            var marker = new mapboxgl.Marker(markerElement)
+                .setLngLat([location.lng, location.lat])
+                .setPopup(new mapboxgl.Popup().setHTML(
+                    '<b>' + location.title + '</b><br>' +
+                    '<img class="popup-img" src="' + location.image + '" alt="' + location.title + '"><br>' +
+                    '<p class="popup-text">' + location.description + '</p>' + // Qo'shimcha matn
+                    '<p class="popup-text"><i>' + location.additionalInfo + '</i></p>'  // Qo'shimcha ma'lumot
+                ))
+                .addTo(map);
+
+            // Markerga bosganda Yandex navigatsiya linki orqali manzilni yuborish
+            marker.getElement().addEventListener('click', function() {
+                var yandexUrl = 'https://yandex.ru/maps/?rtext=' + userLat + ',' + userLng + '~' + location.lat + ',' + location.lng;
+                window.open(yandexUrl, '_blank');
+            });
+        });
+    </script>
+</body>
+</html>
